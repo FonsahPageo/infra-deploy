@@ -1,59 +1,39 @@
 ---
-- name: Validate and Install Required Software on VPS
-  hosts: vps1, vps2, vps3
-  vars:
-    software_list:
-      - name: "Python 3.13.2"
-        check_cmd: "python3 --version"
-        package: "python3"
-        version: "3.13.2"
-      - name: "Kustomize"
-        check_cmd: "kustomize version"
-        package: "kustomize"
-      - name: "PyYAML"
-        check_cmd: "python3 -c 'import yaml'"
-        package: "python3-pyyaml"
-      - name: "pip3"
-        check_cmd: "pip3 --version"
-        package: "python3-pip"
-      - name: "Helm"
-        check_cmd: "helm version"
-        package: "helm"
+- name: Check Software Installation Playbook
+  hosts: localhost
+  gather_facts: false
 
   tasks:
-    #################################################################
-    # Check Tasks: Verify if each software component is installed.  #
-    #################################################################
-    - name: Check if software is installed
-      command: "which {{ item.check_cmd }}"
-      register: software_check
+    - name: Check Python 3.13.2 Installation
+      command: python3 --version
+      register: python_check
       ignore_errors: true
-      changed_when: false
-      loop: "{{ software_list }}"
-      tags: check
 
-    - name: Debug result for installed software
+    - name: Check Kustomize Installation
+      command: kustomize version
+      register: kustomize_check
+      ignore_errors: true
+
+    - name: Check PyYAML Installation
+      command: python3 -c "import yaml"
+      register: pyyaml_check
+      ignore_errors: true
+
+    - name: Check pip3 Installation
+      command: pip3 --version
+      register: pip3_check
+      ignore_errors: true
+
+    - name: Check Helm Installation
+      command: helm version
+      register: helm_check
+      ignore_errors: true
+
+    - name: Display Check Results
       debug:
-        msg: "{{ item.name }} is installed."
-      when: item.check_cmd in software_check.results | map(attribute='stdout') | list
-      loop: "{{ software_list }}"
-      tags: check
-
-    - name: Warn if software is not installed
-      debug:
-        msg: "{{ item.name }} is NOT installed."
-      when: item.check_cmd not in software_check.results | map(attribute='stdout') | list
-      loop: "{{ software_list }}"
-      tags: check
-
-    #############################################################################
-    # Install Tasks: Install the required software on the VPS.                  #
-    #############################################################################
-    # - name: Install required software packages
-    #   apt:
-    #     name: "{{ item.package }}"
-    #     state: present
-    #     update_cache: yes
-    #   loop: "{{ software_list }}"
-    #   tags: install
-    #   become: true
+        msg: |
+          Python 3.13.2: {{ "INSTALLED" if python_check.rc == 0 else "NOT INSTALLED" }}
+          Kustomize: {{ "INSTALLED" if kustomize_check.rc == 0 else "NOT INSTALLED" }}
+          PyYAML: {{ "INSTALLED" if pyyaml_check.rc == 0 else "NOT INSTALLED" }}
+          pip3: {{ "INSTALLED" if pip3_check.rc == 0 else "NOT INSTALLED" }}
+          Helm: {{ "INSTALLED" if helm_check.rc == 0 else "NOT INSTALLED" }}

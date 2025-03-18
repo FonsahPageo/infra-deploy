@@ -11,7 +11,7 @@ pipeline {
         stage('Set SSH Key Permissions') {
             steps {
                 script {
-                    sh 'chmod 600 /var/jenkins_home/.ssh/FansoPageo' // Set the correct permissions for the SSH private key
+                    sh 'chmod 600 /var/jenkins_home/.ssh/FansoPageo'
                 }
             }
         }
@@ -50,7 +50,7 @@ pipeline {
                 script {
                     sh '''
                     ansible-playbook -i /var/jenkins_home/ansible/inventory/hosts.ini \
-                    /var/jenkins_home/ansible/playbooks/tools_check.yaml --tags check --diff \
+                    /var/jenkins_home/ansible/playbooks/tools_check.yaml --diff \
                     --private-key ${PRIVATE_KEY_PATH}
                     '''
                 }
@@ -89,7 +89,7 @@ pipeline {
         //         script {
         //             sh '''
         //             ansible-playbook -i /var/jenkins_home/ansible/inventory/hosts.ini \
-        //             /var/jenkins_home/ansible/playbooks/tools_check.yaml --tags install --diff \
+        //             /var/jenkins_home/ansible/playbooks/tools_check.yaml --diff \
         //             --private-key ${PRIVATE_KEY_PATH}
         //             '''
         //         }
