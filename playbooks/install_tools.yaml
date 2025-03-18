@@ -1,0 +1,28 @@
+---
+- name: Software Installation Playbook
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Install Python 3.13.2
+      package:
+        name: python3.13.2
+        state: present
+
+    - name: Install Kustomize
+      package:
+        name: kustomize
+        state: present
+
+    - name: Install PyYAML
+      package:
+        name: python3-pyyaml
+        state: present
+
+    - name: Install pip3
+      package:
+        name: python3-pip
+        state: present
+
+    - name: Install Helm
+      command: curl -fsSL https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash

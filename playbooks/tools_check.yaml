@@ -1,6 +1,6 @@
 ---
 - name: Check Software Installation Playbook
-  hosts: localhost
+  hosts: vps1, vps2, vps3
   gather_facts: false
 
   tasks:

@@ -25,7 +25,7 @@ pipeline {
             }
         }
 
-        stage('Export configManagement'){
+        stage('Export configManagement directory'){
             steps{
                 script{
                     sh 'cp -R configManagement/* /var/jenkins_home/ansible'
@@ -33,12 +33,24 @@ pipeline {
             }
         }
 
-        stage('Syntax Check') {
+        stage('Syntax Check - tools_check') {
             steps {
                 script {
                      sh '''
                     ansible-playbook -i /var/jenkins_home/ansible/inventory/hosts.ini \
                     /var/jenkins_home/ansible/playbooks/tools_check.yaml \
+                    --syntax-check --diff
+                    '''
+                }
+            }
+        }
+
+        stage('Syntax Check - install_tools') {
+            steps {
+                script {
+                     sh '''
+                    ansible-playbook -i /var/jenkins_home/ansible/inventory/hosts.ini \
+                    /var/jenkins_home/ansible/playbooks/install_tools.yaml \
                     --syntax-check --diff
                     '''
                 }
@@ -89,7 +101,7 @@ pipeline {
         //         script {
         //             sh '''
         //             ansible-playbook -i /var/jenkins_home/ansible/inventory/hosts.ini \
-        //             /var/jenkins_home/ansible/playbooks/tools_check.yaml --diff \
+        //             /var/jenkins_home/ansible/playbooks/intall_tools.yaml --diff \
         //             --private-key ${PRIVATE_KEY_PATH}
         //             '''
         //         }
