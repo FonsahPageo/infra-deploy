@@ -1,0 +1,59 @@
+---
+- name: Validate and Install Required Software on VPS
+  hosts: vps1, vps2, vps3
+  vars:
+    software_list:
+      - name: "Python 3.10.11"
+        check_cmd: "python3 --version"
+        package: "python3"
+        version: "3.10.11"
+      - name: "Kustomize"
+        check_cmd: "kustomize version"
+        package: "kustomize"
+      - name: "PyYAML"
+        check_cmd: "python3 -c 'import yaml'"
+        package: "python3-pyyaml"
+      - name: "pip3"
+        check_cmd: "pip3 --version"
+        package: "python3-pip"
+      - name: "Helm"
+        check_cmd: "helm version"
+        package: "helm"
+
+  tasks:
+    #################################################################
+    # Check Tasks: Verify if each software component is installed.  #
+    #################################################################
+    - name: Check if software is installed
+      command: "which {{ item.check_cmd }}"
+      register: software_check
+      ignore_errors: true
+      changed_when: false
+      loop: "{{ software_list }}"
+      tags: check
+
+    - name: Debug result for installed software
+      debug:
+        msg: "{{ item.name }} is installed."
+      when: item.check_cmd in software_check.results | map(attribute='stdout') | list
+      loop: "{{ software_list }}"
+      tags: check
+
+    - name: Warn if software is not installed
+      debug:
+        msg: "{{ item.name }} is NOT installed."
+      when: item.check_cmd not in software_check.results | map(attribute='stdout') | list
+      loop: "{{ software_list }}"
+      tags: check
+
+    #############################################################################
+    # Install Tasks: Install the required software on the VPS.                  #
+    #############################################################################
+    # - name: Install required software packages
+    #   apt:
+    #     name: "{{ item.package }}"
+    #     state: present
+    #     update_cache: yes
+    #   loop: "{{ software_list }}"
+    #   tags: install
+    #   become: true
