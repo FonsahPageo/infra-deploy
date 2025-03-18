@@ -8,13 +8,27 @@ pipeline {
     }
 
     stages {
+        stage('Set SSH Key Permissions') {
+            steps {
+                script {
+                    sh 'chmod 600 /var/jenkins_home/.ssh/FansoPageo' // Set the correct permissions for the SSH private key
+                }
+            }
+        }
+
         stage('Pull JenkinsFile'){
             steps{
                 script {
-                    git branch: 'fonsah', url: 'https://github.com/Techstargate/INFRASTRUCTURE.git'
-                    sh 'svn export --force . /var/jenkins_home/ansible_temp'
-                    sh 'mv /var/jenkins_home/ansible_temp/configManagement /var/jenkins_home/ansible'
-                    sh 'rm -rf /var/jenkins_home/ansible_temp'
+                    sh 'rm -rf infra'
+                    git branch: 'main', url: 'https://github.com/FonsahPageo/infra.git'
+                }
+            }
+        }
+
+        stage('Export configManagement'){
+            steps{
+                script{
+                    sh 'cp -R configManagement/* /var/jenkins_home/ansible'
                 }
             }
         }
@@ -23,9 +37,8 @@ pipeline {
             steps {
                 script {
                      sh '''
-                    chmod 600 /var/jenkins_home/.ssh/FansoPageo
-                    ansible-playbook -i /var/jenkins_home/ansible/hosts/hosts.ini \
-                    /var/jenkins_home/ansible/playbooks/ansible_tools_check.yaml \
+                    ansible-playbook -i /var/jenkins_home/ansible/inventory/hosts.ini \
+                    /var/jenkins_home/ansible/playbooks/tools_check.yaml \
                     --syntax-check --diff
                     '''
                 }
@@ -36,9 +49,8 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    // chmod 600 /var/jenkins_home/.ssh/FansoPageo
                     ansible-playbook -i /var/jenkins_home/ansible/inventory/hosts.ini \
-                    /var/jenkins_home/ansible/playbooks/ansible_tools_check.yaml --tags check --diff \
+                    /var/jenkins_home/ansible/playbooks/tools_check.yaml --tags check --diff \
                     --private-key ${PRIVATE_KEY_PATH}
                     '''
                 }
@@ -52,21 +64,20 @@ pipeline {
         }
 
         stage('Copy code to infra-deploy') {
-            agent { label 'test' }
             steps {
                 withCredentials([string(credentialsId: 'github_token', variable: 'GITHUB_TOKEN')]) {
                     sh '''
-                        rm -rf INFRASTRUCTURE-DEPLOY
-                        git clone https://github.com/Techstargate/INFRASTRUCTURE-DEPLOY
+                        rm -rf infra-deploy
+                        git clone https://github.com/FonsahPageo/infra-deploy.git
                         rm -rf configManagement/.git
-                        cp -R configManagement/* INFRASTRUCTURE-DEPLOY/
+                        cp -R configManagement/* infra-deploy/
                         rm -rf configManagement
-                        cd INFRASTRUCTURE-DEPLOY
-                        git config user.email "example@gmail.com"
-                        git config user.name "user"
+                        cd infra-deploy
+                        git config user.email "ashprincepageo@gmail.com"
+                        git config user.name "FonsahPageo"
                         git add .
                         git commit -m "Infrastructure-Deploy"
-                        git push https://user:$GITHUB_TOKEN@github.com/user/INFRASTRUCTURE-DEPLOY.git
+                        git push https://FonsahPageo:$GITHUB_TOKEN@github.com/FonsahPageo/infra-deploy.git
                     '''
                 }
             }
@@ -77,9 +88,8 @@ pipeline {
         //     steps {
         //         script {
         //             sh '''
-        //             // chmod 600 /var/jenkins_home/.ssh/FansoPageo
         //             ansible-playbook -i /var/jenkins_home/ansible/inventory/hosts.ini \
-        //             /var/jenkins_home/ansible/playbooks/ansible_tools_check.yaml --tags install --diff \
+        //             /var/jenkins_home/ansible/playbooks/tools_check.yaml --tags install --diff \
         //             --private-key ${PRIVATE_KEY_PATH}
         //             '''
         //         }
